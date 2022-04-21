@@ -1,0 +1,194 @@
+body
+{
+	margin: 0px;
+}
+
+.nav
+{
+	display: flex;
+	height: 50px;
+	background-color: rgba(0, 0, 0, 0.6);
+	justify-content: space-between;
+	padding: 10px 30px 10px 30px;
+}
+
+.nav > p
+{
+	font-size: 15px;
+	height: 50px;
+	font-family: Arial;
+	color: white;
+}
+
+.nav a:hover
+{
+	color: yellow;
+}
+
+.nav a {
+	color: white;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.banner
+{
+	display: grid;
+	justify-content: center;
+	align-content: center;
+	height: 520px;
+	text-align: center;
+	background-image: url("./case/assets/banner.webp");
+	background-size: cover;
+	padding-top: 40px;
+	padding-bottom: 40px;
+	font-size: 35px;
+	font-family: Arial;
+	letter-spacing: 1px;
+}
+
+.banner > img
+{
+	padding-left: 80px;
+	padding-right: 80px;
+}
+
+.content
+{
+	font-family: Arial;
+	background-color: black;
+	padding: 20px 30px 50px 30px;
+}
+
+.icons
+{
+	display: flex;
+	justify-content: center;
+}
+
+.icons > img
+{
+	height: 200px;
+	width: 200px;
+	margin: 25px 60px 25px 60px;
+}
+
+.title
+{
+	font-size: 15px;
+	display: flex;
+	justify-content: space-around;
+	color: white;
+	padding-bottom: 25px;
+}
+
+.desc
+{
+	display: flex;
+	font-size: 12px;
+	color: white;
+	text-align: center;
+	justify-content: space-around;
+}
+
+.catalog
+{
+	font-family: Arial;
+	height: 470px;
+	background-color: white;
+	padding: 20px 30px 50px 30px;
+}
+
+.gallery
+{
+	padding-top: 30px;
+	display: flex;
+	height: 300px;
+	width: 500px;
+	align-items: center;
+}
+
+.gallery > img:hover
+{
+	border: 2px solid gray;
+	border-radius: 5px;
+	height: 330px;
+}
+
+footer
+{
+	height: 100px;
+	text-align: center;
+	background-color: rgb(78, 74, 66);
+}
+
+footer > p
+{
+	font-family: Arial;
+	color: white;
+}
+
+footer > img
+{
+	height: 25px;
+	width: 25px;
+}
+
+footer a:hover
+{
+	border: 1px solid white;
+	border-top: 15px;
+	border-radius: 100%;
+}
+
+form
+{
+	min-width: 500px;
+	display: flex; 
+	background-image: url("./case/assets/banner.webp");
+	flex-direction: column;
+	padding: 50px 100px 50px 100px; 
+	font-family: Arial;
+}
+
+form > * 
+{
+	margin: 10px 0px;
+	font-size: 25px;
+}
+
+form > input, textarea
+{
+	padding: 15px;
+	border-radius: 10px;
+	border: none;
+	box-shadow: 3px 5px 16px 1px black; 
+}
+
+form > .button-container
+{
+	display: flex;
+	justify-content: center;
+}
+
+form button
+{
+	background-color: lightgrey;
+	padding: 10px 30px;
+	font-size: 20px;
+	color: black;
+	border-radius: 100px;
+}
+
+.tnc
+{
+	display: flex;
+	font-size: 15px;
+}
+
+.tnc > input
+{
+	height: 20px;
+	width: 20px;
+	margin: 15px;
+}
