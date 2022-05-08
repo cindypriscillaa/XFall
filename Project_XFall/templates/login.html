@@ -15,19 +15,44 @@
             text-align: justify;
             font-family: sans-serif;
         }
-        input, button {
+        /* input, button {
             padding-top: 10pt;
             padding-bottom: 10pt;
             width: 100%;
+        } */
+        form {
+            width: 100%;
+        }
+        input {
+            padding-top: 10pt;
+            padding-bottom: 10pt;
+            width: inherit;
+            border-radius: 5px;
+        }
+        div {
+            width: 85%;
+            padding-left: 15%;
+            padding-right: 15%;
         }
     </style>
 </head>
 <body>
     <h2>Login</h2>
-    <form>
-        <input type="text" placeholder="username"><br><br>
-        <input type="password" placeholder="password"><br><br><br>
-        <button>SUBMIT</button>
-	</form>
+    <form method="POST" action="">
+        {% csrf_token %}
+
+        {{form.free}} <br><br>
+        {{form.password}} <br>
+        <br><br>
+        <div> 
+            <input type="submit" name="Login User" style="border-width: medium;">
+        </div>
+    </form>
+    <script>
+        var form_fields = document.getElementsByTagName('input')
+        form_fields[1].placeholder = "email or username"
+        form_fields[2].placeholder = "password"
+        form_fields[2].type = "password"
+    </script>
 </body>
 </html>

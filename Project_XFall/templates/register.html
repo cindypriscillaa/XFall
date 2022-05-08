@@ -4,31 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login</title>
+    <title>Register</title>
     <style>
         body {
-            padding-top: 10%;
+            /* padding-top: 8%; */
             padding-left: 40%;
             padding-right: 40%;
+            padding-bottom: 8%;
         }
         h2 {
+            padding-top: 20%;
             text-align: justify;
             font-family: sans-serif;
         }
-        input, button {
+        form {
+            width: 100%;
+        }
+        input {
             padding-top: 10pt;
             padding-bottom: 10pt;
-            width: 100%;
+            width: inherit;
+            border-radius: 5px;
+        }
+        div {
+            width: 85%;
+            padding-left: 15%;
+            padding-right: 15%;
         }
     </style>
 </head>
 <body>
+    <div style="padding-top: 1%; padding-left: 280%;"> 
+        <button type="button" name="Login Button" style="width: 100px; height: 40px; text-align: center; border-radius: 5px; font-weight: bold;">
+            <a href="http://localhost:8000/login/admin" style="text-decoration: none;">Login</a>
+        </button>
+    </div>
     <h2>Register</h2>
-    <form>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <!-- {{form.as_p}} 
+        {{form.full_name.label}}
+        {{form.email.label}}
+        {{form.username.label}}
+        {{form.password.label}}
+        {{form.phone_number.label}} -->
+
+        {{form.full_name}} <br><br>
+        {{form.email}} <br><br>
+        {{form.username}} <br><br>
+        {{form.password}} <br><br>
+        {{form.phone_number}} <br>
+
+        <span style="text-align: right; padding-left: 220px; font-family: sans-serif; font-size: 12px; color: grey;">(*) please use prefix 64</span>
+        <br><br><br>
+
+        <!-- <input type="text" placeholder="name" name="{{form.field.full_name}}" value="{{form.field.full_name}}"><br><br> -->
+        <!-- <input type="text" placeholder="name" name="{{form.full_name}}" value="{{form.full_name}}"><br><br>
         <input type="email" placeholder="email"><br><br>
-        <input type="text" placeholder="username"><br><br>
-        <input type="password" placeholder="password"><br><br><br>
-        <button>SUBMIT</button>
-	</form>
+        <input type="username" placeholder="username"><br><br>
+        <input type="password" placeholder="password"><br><br>
+        <input type="number" placeholder="phone_number"><br> -->
+
+        <div> 
+            <input type="submit" name="Create User" style="border-width: medium; font-weight: bold;">
+        </div>
+    </form>
+    <script>
+        var form_fields = document.getElementsByTagName('input')
+        form_fields[1].placeholder = "home name"
+        form_fields[2].placeholder = "email"
+        form_fields[3].placeholder = "username"
+        form_fields[4].placeholder = "password"
+        form_fields[4].type = "password"
+        form_fields[5].placeholder = "home number"
+    </script>
 </body>
 </html>
+

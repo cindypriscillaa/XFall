@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard</title>
+    <style>
+        body {
+            padding-top: 2%;
+            padding-left: 5%;
+            padding-right: 5%;
+            font-family: sans-serif;
+        }
+        h2 {
+            text-align: justify;
+        }
+        button {
+            font-size: 20px;
+        }
+        a, a:hover, a:focus, a:active {
+            text-decoration: none;
+            color: inherit;
+        }
+        table, th, td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Emergency Contacts</h2>
+    <div style="width: 100%; display: table;margin-left: 2%;">
+        <div style="display: table-row;">
+            <div style="width: 20%; display: table-cell;">
+                <div> 
+                    <button type="button" name="Dashboard" style="width: 200px; height: 100px; text-align: left;
+                    border: none; background-color: transparent;">
+                        <a href="http://localhost:8000/dashboard/admin" style="text-decoration: none;">Dashboard</a>
+                    </button>
+                </div>
+                <div> 
+                    <button type="button" name="Contacts" style="width: 200px; height: 100px; text-align: left;
+                    border: none; background-color: transparent;">
+                        Emergency Contacts
+                    </button>
+                </div>
+                <div> 
+                    <button type="button" name="Services" style="width: 200px; height: 100px; text-align: left;
+                    border: none; background-color: transparent;">
+                        <a href="http://localhost:8000/services/admin" style="text-decoration: none;">Emergency Services</a>
+                    </button>
+                </div>
+                <br><br><br><br><br><br>
+                <div style="padding-top: 50%;"> 
+                    <button type="button" name="Logout Button" style="width: 200px; height: 100px; text-align: left; font-weight: bold; 
+                    border: none; background-color: transparent;">
+                        <a href="http://localhost:8000/login/admin" style="text-decoration: none;">Logout</a>
+                    </button>
+                </div>
+            </div>
+            <div style="width: 80%; display: table-cell;"> 
+                <div style="width: inherit; margin-right: 5%; margin-left: 10%;">
+                    <h2 style="font-weight: lighter;">Add Contact</h2>
+                    Camera ID: {{camera_id}}
+                    <br><br><br><br>
+                    
+                    <h2 style="font-weight: lighter;">Contact List</h2>
+                    <div style="height: 301pt; overflow: auto;">
+                        <table style="width: 100%;">
+                            <tr>
+                              <th>Image</th>
+                              <th>Name</th>
+                              <th>Phone Number</th>
+                              <th style="width: 18%;">Action</th>
+                            </tr>
+                            {% for column in data %}
+                            <tr>
+                                <td>{{column.id}}</td>
+                                <td>{{column.name}}</td>
+                                <td>{{column.phone_number}}</td>
+                                {% if column.id != "-" %}
+                                <td style="padding-right: 0%; padding-left: 5.8%;">
+                                    <button type="button" name="Delete" style="width: 65px; height: 30px; text-align: center;
+                                    background-color: transparent; font-size: 12px;">
+                                        Delete
+                                    </button>
+                                </td>
+                                {% else %}
+                                <td>-</td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                          </table>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

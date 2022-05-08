@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CamerasUsersRelation, Users
+from .models import Actions, CamerasUsersRelation, Messages, Users
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -8,18 +8,46 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField
     username = serializers.CharField(max_length=15)
     password = serializers.CharField(max_length=30)
+    full_name = serializers.CharField(max_length=30)
     profile_image = serializers.ImageField
     phone_number = serializers.IntegerField
     is_verified = serializers.BooleanField
-    created_date = serializers.DateField()
+    created_date = serializers.DateTimeField()
     created_by = serializers.CharField(max_length=15)
-    updated_date = serializers.DateField()
+    updated_date = serializers.DateTimeField()
     updated_by = serializers.CharField(max_length=15)
 
     class Meta:
         model = Users
         fields = ('__all__')
 
+class CamerasUsersSerializer(serializers.ModelSerializer):
+    user = serializers.PKOnlyObject
+    camera = serializers.PKOnlyObject
+
+    class Meta:
+        model = CamerasUsersRelation
+        fields = ('__all__')
+
+class MessageSerializer(serializers.ModelSerializer):
+    user = serializers.PKOnlyObject
+    camera = serializers.PKOnlyObject
+    content = serializers.CharField(max_length=255)
+    created_date = serializers.DateTimeField()
+
+    class Meta:
+        model = Messages
+        fields = ('__all__')
+
+class ActionSerializer(serializers.ModelSerializer):
+    user = serializers.PKOnlyObject
+    notification = serializers.PKOnlyObject
+    action = serializers.CharField(max_length=30)
+    created_date = serializers.DateTimeField()
+
+    class Meta:
+        model = Actions
+        fields = ('__all__')
 
 class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -72,25 +100,3 @@ class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['username'] = self.user.username
         #data['password'] = self.user.password
         return data
-
-class CamerasUsersSerializer(serializers.ModelSerializer):
-    user = serializers.PKOnlyObject
-    camera = serializers.PKOnlyObject
-
-    class Meta:
-        model = CamerasUsersRelation
-        fields = ('__all__')
-
-# class ServiceSerializer(serializers.ModelSerializer):
-#     type = serializers.PKOnlyObject
-#     name = serializers.CharField(max_length=30)
-#     address = serializers.CharField(max_length=150)
-#     phone_number = serializers.IntegerField
-#     created_date = serializers.DateField()
-#     created_by = serializers.CharField(max_length=15) 
-#     updated_date = serializers.DateField()
-#     updated_by = serializers.CharField(max_length=15) 
-
-#     class Meta:
-#         model = EmergencyServices
-#         fields = ('__all__')
