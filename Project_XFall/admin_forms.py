@@ -1,7 +1,6 @@
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
-from django import forms
-from .models import UserForAdminPage
+from .models import EmergencyServices, UserForAdminPage
 
 class CreateAdminForm(UserCreationForm):
     class Meta:
@@ -12,3 +11,8 @@ class LoginAdminForm(UserCreationForm):
     class Meta:
         model = UserForAdminPage
         fields = ['free', 'password'] 
+
+class ServiceForm(ModelForm):
+    class Meta:
+        model = EmergencyServices 
+        fields = ['type', 'name', 'address', 'phone_number']
