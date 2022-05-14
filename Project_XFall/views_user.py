@@ -9,19 +9,30 @@ from .serializers import (
     CamerasUsersSerializer,
     MessageSerializer, 
     UserSerializer, )
-from .models import Cameras, CamerasUsersRelation, Actions, EmergencyServices, Login, MessageRecipients, Messages, Notifications, Roles, Users
+from .models import Cameras, CamerasUsersRelation, Actions, EmergencyServices, Login, MessageRecipients, Messages, Notifications, Roles, UserVerificationLogs, Users
 from django.core.exceptions import ObjectDoesNotExist
+from cryptography.fernet import Fernet
+from firebase_admin import messaging
+from firebase_admin.messaging import Message
+
+import os
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/LAPTOP/XFall/xfall-secretkey.json"
 
 # class UserLoginViews(TokenObtainPairView):
 #     serializer_class = UserTokenObtainPairSerializer
 
-# import base64
+def encrypt(key,plaintext):
+    fernet = Fernet(key)
+    enc_message = fernet.encrypt(plaintext.encode())
+    return enc_message
 
-# from django.core.files.base import ContentFile
-# format, imgstr = data.split(';base64,') 
-# ext = format.split('/')[-1] 
+def decrypt(key,ciphertext):
+    fernet = Fernet(key)
+    dec_message = fernet.decrypt(ciphertext).decode()
+    return dec_message
 
-# data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+class FernetGenerated:
+    key = Fernet.generate_key()
 
 class UserLoginViews(APIView):
     def post (self, request):
@@ -37,26 +48,32 @@ class UserLoginViews(APIView):
           return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-          user = Users.objects.get(username=body['email_or_username'], is_verified=1)
+          user = Users.objects.get(username=body['email_or_username'])
         except ObjectDoesNotExist as e:
           isNone = True
 
         if isNone is True:
             isNone = False
             try:
-                user = Users.objects.get(email=body['email_or_username'], is_verified=1)
+                user = Users.objects.get(email=body['email_or_username'])
             except ObjectDoesNotExist as e:
                 isNone = True            
         
         if isNone is True:
             return Response({"Status": "Error", "Messages": {"English": "User doesn't exists.", "Indonesia": "Pengguna tidak terdaftar."}}, status=status.HTTP_400_BAD_REQUEST)
 
+        data = {"user_id": user.id, "full_name": user.full_name, "username": user.username, "email": user.email, "phone_number": user.phone_number, "profile_image": user.profile_image}
+
+        if user.is_verified == 0:
+            return Response({"Status": "Error", "Messages": {"English": "User is not verified.", "Indonesia": "User belum terverifikasi."}, "User": data}, status=status.HTTP_403_FORBIDDEN)
+
         ## Check user role
         role = Roles.objects.get(name="User")
         if user.role_id != role.id:
             return Response({"Status": "Error", "Messages": {"English": "User doesn't exists.", "Indonesia": "Pengguna tidak terdaftar."}}, status=status.HTTP_400_BAD_REQUEST)
-
-        if user.password != body['password']:
+        
+        fernetToken = bytes(user.password, 'utf-16')
+        if decrypt(FernetGenerated.key, fernetToken) != body['password']:
             return Response({"Status": "Error", "Messages": {"English": "Login failed.", "Indonesia": "Login gagal."}}, status=status.HTTP_400_BAD_REQUEST)
 
         try: ## Check last login session
@@ -73,7 +90,7 @@ class UserLoginViews(APIView):
         loginSession = Login(login_status="ON",is_logged_out=False, user_id=user.id)
         loginSession.save()
         
-        return Response({"Status": "Success", "Messages": {"English": "Login successful!", "Indonesia": "Login berhasil!"}, "Token": str(loginSession.token)}, status=status.HTTP_200_OK)
+        return Response({"Status": "Success", "Messages": {"English": "Login successful!", "Indonesia": "Login berhasil!"}, "Token": str(loginSession.token), "User": data}, status=status.HTTP_200_OK)
       except IntegrityError as e:
         
         return Response({"Status": "Error", "Messages": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -114,7 +131,7 @@ class UserRegisViews(APIView):
       try:
         body_json = request.body.decode('utf-8')
         body = json.loads(body_json)
-
+        
         try:
           if body['full_name'] is None or body['email'] is None:
             return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
@@ -130,7 +147,9 @@ class UserRegisViews(APIView):
 
         role = Roles.objects.get(name="User")
 
+        body['password'] = (encrypt(FernetGenerated.key, body['password'])).decode('utf-16')
         body['role'] = role.id
+        body['profile_image'] = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIBAMAAABfdrOtAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAD1BMVEVHcEwAAAAAAAAAAAAAAADTrAj/AAAABXRSTlMA/7x4OWjJfMIAAANTSURBVHja7VrbcaswEE1ADYAoAAEFAKYAwPRf0/WNxzbEIO0LTSbZ82kDZx9nhbTLx4dCoVAoFAqFQqFQSGO5XvrqMiwnUlz77I68Hk6iMA+KL9TjKW64bIN8OJ/jDJZrtgNhltTtkeStaM53OW4sktnvsgNYOY45O0RzdrBEA+ZxRMwVszW9qraOybgyrRjqZbxh6Vc8hbAj1XP1XSpZV+bdNXG1WjaS0qq3f/SCAksP6+5ZoaVYsb/b+/TRiqV9J/KJVOoTn7WdULwez2l9+bIy2rLeOmXqK/U5Evwbt6TYQDQLiZSUAV1YiZSMIYWP/JTYoKstv0pKzhXQvLdBXwt23nPfJY6decATAHaAVscG8E4bueIqAde0XJIR4G3JVHBg+XNMkgmSVMfU8ASRZydCUghYwjVShqSBbP5yJkkJkaBlriogklxJfhCJjLqKc9XV/ZqKj7hAnrzUJ3AS7pvx5NcvZJPA3khAtkQJe8cN2NxN3M0dfJvKIQlvuA3/FBTl6BDlEBQ8rUkc56AHU07eIx2xE1izgNdcgbU9uG0ibwPHCDW8orSink219jgj/H5qjPbgqwdYH9ELNDpfLdtm92wtMxN4ddHrXQ6RPnq6N/ZbjwMFHPk+EPj/y3Jx0sOgdDPJqG44YbSxduW8qVaUcVOUwVmcEeCxK4KOXI/DNUTgEPMlzbwQ8SV1fhKJUbYJcIiUSp8FYcXF+7Z28ZO/DVZeD/ex7LV3ggHrNhSrZ5kNjZVSr/1m7rLOFkdhzvcxzPrtyNhxJ4HczgK5X2W9CWmPnPskbOfMdeXliAXUas50xBeKlyUlr0ZakMotq0Ya4MJDqZUJqJtnwApG2gdo7ggqTuChph+4EHeSZ/+BY+++QSMxWqX4xe/aAibTkeL1iBZwRZpJ+kpxUTakepyR/pMaOR0yk5RvJdC9MkpzLUUb1uFFPKHfdgn+/YhvX+Jbt4bQUXbYSjEEQU5Y5ykdZfQ9E6F+0d6TPhPBfsBC+uAFaZkhzcImnLxoYyrkSIg2pjK4u2hjKqT/n7QdNC6TxGkubj7b0UhwthFHxjgS4jQX9x1DDBJDPG6kGOX/aBJDIBmJJK2820piqi/gz7L3+zhdKYVCoVAoFAqFQvGX8Q8dFNioansTYQAAAABJRU5ErkJggg=='
         body['is_verified'] = False
         body['created_date'] = datetime.datetime.now()
         body['updated_date'] = datetime.datetime.now()
@@ -142,7 +161,12 @@ class UserRegisViews(APIView):
         else:
           return Response({"Status": "Error", "Messages": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"Status": "Success", "Messages": {"English": "Registration successful!", "Indonesia": "Registrasi berhasil!"}}, status=status.HTTP_200_OK)
+        try:
+            user = Users.objects.get(email=body['email'], username=body['username'])
+        except ObjectDoesNotExist as e:
+            pass
+
+        return Response({"Status": "Success", "Messages": {"English": "Registration successful!", "Indonesia": "Registrasi berhasil!"}, "User_ID": user.id}, status=status.HTTP_200_OK)
       except IntegrityError as e:
         if str(e).find("UNIQUE constraint failed") is not None:
           return Response({"Status": "Error", "Messages": {"English": "User already exists.", "Indonesia": "Pengguna sudah terdaftar."}}, status=status.HTTP_400_BAD_REQUEST)
@@ -187,7 +211,7 @@ class UserPasswordViews(APIView):
         if login.login_status != "ON" and login.is_logged_out != 0:
           return Response({"Status": "Error", "Messages": {"English": "You're not allowed to access this service.", "Indonesia": "Anda tidak berhak mengakses layanan ini."}}, status=status.HTTP_400_BAD_REQUEST)
 
-        account.password = body['password']
+        account.password = (encrypt(FernetGenerated.key, body['password'])).decode('utf-16')
         account.updated_date = datetime.datetime.now()
         account.save()
 
@@ -233,10 +257,11 @@ class UserPasswordViews(APIView):
             return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
         ## Check Old Password
-        if (account.password != body['old_password']):
-            return Response({"Status": "Error", "Messages": {"English": "Password invalid.", "Indonesia": "Password tidak sesuai"}}, status=status.HTTP_400_BAD_REQUEST)
+        fernetToken = bytes(account.password, 'utf-16') 
+        if decrypt(FernetGenerated.key, fernetToken) != body['old_password']: 
+            return Response({"Status": "Error", "Messages": {"English": "Old password invalid.", "Indonesia": "Password lama tidak sesuai"}}, status=status.HTTP_400_BAD_REQUEST)
         
-        account.password = body['new_password']
+        account.password = (encrypt(FernetGenerated.key, body['new_password'])).decode()
         account.updated_date = datetime.datetime.now()
         account.save()
 
@@ -324,7 +349,7 @@ class UserProfileViews(APIView):
         except ObjectDoesNotExist as e:
             return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
         
-        detail = {"full_name": account.full_name, "email": account.email, "phone_number": account.phone_number}
+        detail = {"full_name": account.full_name, "username": account.username, "email": account.email, "phone_number": account.phone_number, "profile_image": account.profile_image}
 
         return Response({"Status": "Success", "Messages": {"English": "User's detail collected.", "Indonesia": "Detail pengguna berhasil diperoleh."}, "User": detail}, status=status.HTTP_200_OK)
 
@@ -461,8 +486,8 @@ class UserCameraDetailViews(APIView):
             camera = Cameras.objects.get(id=request.GET.get('cameraId'))
         except ObjectDoesNotExist as e:
             return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
-                                                                        ## TO-DO: camera.address after migrate
-        detail = {"id": str(camera.id), "name": camera.name, "address": camera.status, "num_of_contact": str(CamerasUsersRelation.objects.all().filter(camera_id=camera.id).count() - 1)}
+                                                                        
+        detail = {"id": str(camera.id), "name": camera.name, "address": camera.address, "num_of_contact": str(CamerasUsersRelation.objects.all().filter(camera_id=camera.id).count() - 1)}
 
         return Response({"Status": "Success", "Messages": {"English": "Camera detail collected.", "Indonesia": "Detail kamera berhasil diperoleh."}, "Camera": detail}, status=status.HTTP_200_OK)
 
@@ -508,7 +533,7 @@ class EmergencyContactViews(APIView):
                   except:
                     countUser = countUser+1
                     continue
-                  userObj = {'full_name': users.full_name,'phone_number': users.phone_number} ## TO-DO: , 'image': users.profile_image}
+                  userObj = {'full_name': users.full_name,'phone_number': users.phone_number, 'profile_image': users.profile_image}
                   listUser.append(userObj)
                   countUser = countUser+1
                 
@@ -753,6 +778,7 @@ class UserChatViews(APIView):
         body_json = request.body.decode('utf-8')
         body = json.loads(body_json)
         count = 0
+        now = datetime.datetime.now()
 
         try:
           if request.headers.get('XFALL-AUTHORIZATION') is None:
@@ -786,7 +812,7 @@ class UserChatViews(APIView):
         except ObjectDoesNotExist as e:
             return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
-        message = json.loads('{"camera": "' + body['camera_id'] + '", "content": "' + body['message'] + '", "created_date": "' + str(datetime.datetime.now()) + '", "user": "' + str(login.user_id) + '"}')
+        message = json.loads('{"camera": "' + body['camera_id'] + '", "content": "' + body['message'] + '", "created_date": "' + str(now) + '", "user": "' + str(login.user_id) + '"}')
         messageSerial = MessageSerializer(data=message) 
         if messageSerial.is_valid():
             messageSerial.save()
@@ -822,7 +848,28 @@ class UserChatViews(APIView):
           
           count=count+1
 
-        return Response({"Status": "Success", "Messages": {"English": "Message sent.", "Indonesia": "Pesan terkirim."}}, status=status.HTTP_200_OK)
+        try: ## Get Message ID
+            msg = Messages.objects.get(camera=cam.id, content=body['message'], created_date=now, user=user.id)
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        content = body['message'][0:50]
+        messageToEmergencyContacts = messaging.Message(
+            data={
+                "push_notif_type": "CHAT",
+                "chat_id": str(msg.id),
+                "camera_id": body['camera_id'],
+                "camera_name": cam.name,
+                "sender_name": user.full_name,
+                "content": content
+            },
+            topic="testing",
+            android=messaging.AndroidConfig(priority="normal"),
+        )
+        
+        messaging.send(messageToEmergencyContacts)
+
+        return Response({"Status": "Success", "Messages": {"English": "Message sent.", "Indonesia": "Pesan terkirim."}, "msg": str(messageToEmergencyContacts)}, status=status.HTTP_200_OK)
 
     def get (self,request):
         count = 0 
@@ -860,8 +907,7 @@ class UserChatViews(APIView):
                   count = count+1
                   continue
 
-                detail = {"message_id": msg.id, "sender_username": user.username, "sender_full_name": user.full_name, 
-                      ## TO-DO: "sender_image": user.profile_image, 
+                detail = {"message_id": msg.id, "sender_username": user.username, "sender_full_name": user.full_name, "sender_image": user.profile_image,
                       "content": msg.content, "created_date": msg.created_date.strftime('%Y-%m-%d %H:%M:%S')}
                 listMessage.append(detail)
                 count = count+1
@@ -1000,14 +1046,15 @@ class UserActionViews(APIView):
 
         try: ## Check if user already give action
             Actions.objects.get(notification_id=body['notification_id'], user_id=login.user_id)
-            return Response({"Status": "Error", "Messages": {"English": "User already give an action.", "Indonesia": "Pengguna sudah memberikan tindakan."}}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "You already give an action.", "Indonesia": "Anda sudah memberikan tindakan."}}, status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist as e:
             pass
 
         try: ## Check if action already used by other user
             act = Actions.objects.get(notification_id=body['notification_id'], action=body['action'])
             if act.user_id != login.user_id:
-              return Response({"Status": "Error", "Messages": {"English": "Action has been performed by other emergency contact.", "Indonesia": "Tindakan telah dilakukan oleh kontak darurat lainnya."}}, status=status.HTTP_400_BAD_REQUEST)
+              actor = Users.objects.get(id=act.user_id)
+              return Response({"Status": "Error", "Messages": {"English": "Action has been performed by "+actor.full_name, "Indonesia": "Tindakan telah dilakukan oleh "+actor.full_name}}, status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist as e:
             pass
 
@@ -1018,4 +1065,90 @@ class UserActionViews(APIView):
         else:
             return Response({"Status": "Error", "Messages": actionSerial.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"Status": "Success", "Messages": {"English": "Action sent.", "Indonesia": "Tindakan terkirim."}}, status=status.HTTP_200_OK)
+        try: ## Get Camera Detail
+            cam  = Cameras.objects.get(id=body['camera_id'])
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        message = messaging.Message(
+            data={
+                "push_notif_type": "ACTION",
+                "action_type": body['action'],
+                "actor_name": str(login.user_id),
+                "camera_id": body['camera_id'],
+                "camera_name": cam.name
+            },
+            topic="testing",
+            android=messaging.AndroidConfig(priority="normal"),
+        )
+        
+        messaging.send(message)
+
+        return Response({"Status": "Success", "Messages": {"English": "Action sent.", "Indonesia": "Tindakan terkirim."}, "msg": str(message)}, status=status.HTTP_200_OK)
+
+class UserVerificationViews(APIView):
+    def post(self, request):
+        body_json = request.body.decode('utf-8')
+        body = json.loads(body_json)
+
+        try:
+          if body['user_id'] is None:
+            return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+          if body['verification_code'] is None:
+            return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+          if request.GET.get('type') is None:
+            return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError as e:
+          return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+        
+        ## Check Type
+        if request.GET.get('type') != "verify" and request.GET.get('type') != "send":
+          return Response({"Status": "Error", "Messages": {"English": "Invalid type.", "Indonesia": "Tipe tidak sesuai."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        try: ## Get User Detail
+            user = Users.objects.get(id=body['user_id'])
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+          
+        if user.role_id != 2: ## Role must be User
+            return Response({"Status": "Error", "Messages": {"English": "You're not allowed to access this service.", "Indonesia": "Anda tidak berhak mengakses layanan ini."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.GET.get('type') == "send":
+          try:
+              verif = UserVerificationLogs(user_id=user.id, verification_code=body['verification_code'], expired_time=datetime.datetime.now() + datetime.timedelta(minutes=5))
+              verif.save()
+          except:
+              return Response({"Status": "Error", "Messages": {"English": "Failed to save verification log.", "Indonesia": "Gagal untuk menyimpan log verifikasi."}}, status=status.HTTP_400_BAD_REQUEST)
+
+          return Response({"Status": "Error", "Messages": {"English": "Verification log successfully inserted.", "Indonesia": "Log verifikasi berhasil dimasukkan."}}, status=status.HTTP_200_BAD_REQUEST)
+        else:
+          try: ## Get Verification Log
+              verif = UserVerificationLogs.objects.get(user_id=user.id, verification_code=body['verification_code'])
+          except:
+              return Response({"Status": "Error", "Messages": {"English": "OTP code invalid.", "Indonesia": "Kode OTP tidak valid."}}, status=status.HTTP_400_BAD_REQUEST)
+          
+          if verif.expired_time < datetime.datetime.now():
+              return Response({"Status": "Error", "Messages": {"English": "OTP code invalid.", "Indonesia": "Kode OTP tidak valid."}}, status=status.HTTP_400_BAD_REQUEST)
+          
+          if user.is_verified == 0:
+            user.is_verified = "1"
+            user.save()
+
+          return Response({"Status": "Success", "Messages": {"English": "User verified!", "Indonesia": "Pengguna terverifikasi!"}}, status=status.HTTP_200_OK)
+
+class UserProfileNumberViews(APIView):
+    def get(self, request):
+        try:
+          if request.GET.get('email') is None:
+            return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+          if request.GET.get('username') is None:
+            return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError as e:
+          return Response({"Status": "Error", "Messages": {"English": "Required field is empty.", "Indonesia": "Field yang harus diisi kosong."}}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = Users.objects.get(email=request.GET.get('email'), username=request.GET.get('username'))
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "Email or username is not found.", "Indonesia": "Email atau username tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"Status": "Success", "Messages": {"English": "User's detail collected.", "Indonesia": "Detail pengguna berhasil diperoleh."}, "Phone_Number": user.phone_number}, status=status.HTTP_200_OK)

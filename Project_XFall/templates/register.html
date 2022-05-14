@@ -42,12 +42,6 @@
     <h2>Register</h2>
     <form method="POST" action="">
         {% csrf_token %}
-        <!-- {{form.as_p}} 
-        {{form.full_name.label}}
-        {{form.email.label}}
-        {{form.username.label}}
-        {{form.password.label}}
-        {{form.phone_number.label}} -->
 
         {{form.full_name}} <br><br>
         {{form.email}} <br><br>
@@ -57,13 +51,6 @@
 
         <span style="text-align: right; padding-left: 220px; font-family: sans-serif; font-size: 12px; color: grey;">(*) please use prefix 64</span>
         <br><br><br>
-
-        <!-- <input type="text" placeholder="name" name="{{form.field.full_name}}" value="{{form.field.full_name}}"><br><br> -->
-        <!-- <input type="text" placeholder="name" name="{{form.full_name}}" value="{{form.full_name}}"><br><br>
-        <input type="email" placeholder="email"><br><br>
-        <input type="username" placeholder="username"><br><br>
-        <input type="password" placeholder="password"><br><br>
-        <input type="number" placeholder="phone_number"><br> -->
 
         <div> 
             <input type="submit" name="Create User" style="border-width: medium; font-weight: bold;">

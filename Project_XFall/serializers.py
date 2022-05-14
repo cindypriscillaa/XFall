@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Actions, CamerasUsersRelation, Messages, Users
+from .models import Actions, CamerasUsersRelation, EmergencyServices, Messages, Users
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -7,9 +7,9 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.PKOnlyObject
     email = serializers.EmailField
     username = serializers.CharField(max_length=15)
-    password = serializers.CharField(max_length=30)
+    password = serializers.CharField(max_length=255)
     full_name = serializers.CharField(max_length=30)
-    profile_image = serializers.ImageField
+    profile_image = serializers.ReadOnlyField
     phone_number = serializers.IntegerField
     is_verified = serializers.BooleanField
     created_date = serializers.DateTimeField()
@@ -47,6 +47,20 @@ class ActionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Actions
+        fields = ('__all__')
+
+class ServiceSerializer(serializers.ModelSerializer):
+    type = serializers.PKOnlyObject
+    name = serializers.CharField(max_length=30)
+    address = serializers.CharField(max_length=150)
+    phone_number = serializers.IntegerField
+    created_date = serializers.DateTimeField
+    created_by = serializers.CharField(max_length=15)
+    updated_date = serializers.DateTimeField
+    updated_by = serializers.CharField(max_length=15) 
+
+    class Meta:
+        model = EmergencyServices
         fields = ('__all__')
 
 class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):

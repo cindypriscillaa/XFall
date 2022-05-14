@@ -56,7 +56,7 @@
                 <div style="padding-top: 50%;"> 
                     <button type="button" name="Logout Button" style="width: 200px; height: 100px; text-align: left; font-weight: bold; 
                     border: none; background-color: transparent;">
-                        <a href="http://localhost:8000/login/admin" style="text-decoration: none;">Logout</a>
+                        <a href="http://localhost:8000/logout/admin" style="text-decoration: none;">Logout</a>
                     </button>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                                 <td style="padding-right: 0%; padding-left: 5.8%;">
                                     <button type="button" name="Delete" style="width: 65px; height: 30px; text-align: center;
                                     background-color: transparent; font-size: 12px;">
-                                        Delete
+                                        <a href="http://localhost:8000/contacts/admin/{{column.id}}" style="text-decoration: none;">Delete</a>
                                     </button>
                                 </td>
                                 {% else %}

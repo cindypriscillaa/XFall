@@ -9,13 +9,21 @@ from Project_XFall import views_admin, views_user
 from . import views
 
 urlpatterns=[
-  #path('login/admin', views_admin.AdminLoginViews.as_view()),
+  ## Login Admin Related
   path('dashboard/admin', views_admin.DashboardViews, name="Dashboard"),
   path('register/admin', views_admin.RegisPageViews, name="Registration"),
   path('login/admin', views_admin.LoginPageViews, name="Login"),
+  path('logout/admin', views_admin.LogoutPageViews, name="Logout"),
   path('contacts/admin', views_admin.ContactViews, name="Contacts"),
   path('services/admin', views_admin.ServiceViews, name="Services"),
   path('services/admin/<int:id>', views_admin.EditServiceViews, name="Set Services"),
+  path('services/new/admin', views_admin.AddServiceViews, name="Add Service"),
+  path('contacts/admin/<int:id>', views_admin.DeleteContactViews, name="Delete Contact"),
+
+  ## Send Notification Related
+  path('notify/fall-detected', views.NotifyFallViews.as_view()),
+  # path('notify/user-removed', views.NotifyRelationViews.as_view()),
+  path('test', views.TestSaveImage.as_view()),
 
   ## User Account Related
   path('login', views_user.UserLoginViews.as_view()),
@@ -23,6 +31,8 @@ urlpatterns=[
   path('register', views_user.UserRegisViews.as_view()),
   path('password', views_user.UserPasswordViews.as_view()),
   path('profile', views_user.UserProfileViews.as_view()),
+  path('otp', views_user.UserVerificationViews.as_view()),
+  path('profile-number', views_user.UserProfileNumberViews.as_view()),
 
   ## Service Related
   path('action', views_user.UserActionViews.as_view()),

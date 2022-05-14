@@ -56,7 +56,7 @@
                 <div style="padding-top: 50%;"> 
                     <button type="button" name="Logout Button" style="width: 200px; height: 100px; text-align: left; font-weight: bold; 
                     border: none; background-color: transparent;">
-                        <a href="http://localhost:8000/login/admin" style="text-decoration: none;">Logout</a>
+                        <a href="http://localhost:8000/logout/admin" style="text-decoration: none;">Logout</a>
                     </button>
                 </div>
             </div>
@@ -70,9 +70,8 @@
                     <div style="height: 50px;">
                         <input type="text" placeholder="Search Service..." style="height: 25px; width: 200px;">
                         <button type="button" name="Dashboard" style="width: 100px; height: 30px; position: right; text-align: center;
-                        background-color: transparent; font-size: 15px; margin-left: 69.75%;">
-                            Filter
-                            <!-- Add Service -->
+                        background-color: transparent; font-size: 14px; margin-left: 67.75%;">
+                           <a href="http://localhost:8000/services/new/admin" style="text-decoration: none;">Add Service</a>
                         </button>
                     </div>
                     <div style="height: 263pt; overflow: auto;">
@@ -90,14 +89,6 @@
                                 <td>{{column.type}}</td>
                                 {% if column.name != "-" %}
                                 <td style="padding-right: 0%; padding-left: 2.5%;">
-                                    <!-- <button type="button" name="Edit" style="width: 65px; height: 30px; text-align: center;
-                                    background-color: transparent; font-size: 12px;">
-                                        Edit
-                                    </button>
-                                    <button type="button" name="Delete" style="width: 65px; height: 30px; text-align: center;
-                                    background-color: transparent; font-size: 12px;">
-                                        Delete
-                                    </button> -->
                                     {% if column.is_selected == True %}
                                     <button type="button" name="Selected" style="width: 134px; height: 30px; text-align: center;
                                     background-color: lightgray; font-size: 12px; margin-top: 10px;">

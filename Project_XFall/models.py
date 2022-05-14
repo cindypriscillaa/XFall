@@ -1,3 +1,4 @@
+from email.policy import default
 import uuid
 from datetime import datetime
 from django.db import models
@@ -37,7 +38,7 @@ class Cameras(models.Model): ## OK
     name = models.CharField(max_length=30)
     emergency_services = models.ForeignKey(EmergencyServices, blank=True, null=True, default=None, on_delete=models.DO_NOTHING)
     status = models.CharField(max_length=15, default="OFF")
-    #address = models.CharField(max_length=100) ## TO-DO
+    address = models.CharField(max_length=255)
     created_date = models.DateTimeField(datetime.now)
     created_by = models.CharField(max_length=15)
     updated_date = models.DateTimeField(datetime.now)
@@ -63,9 +64,9 @@ class Users(models.Model): ## OK
     role = models.ForeignKey(Roles, on_delete=models.CASCADE)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=15, unique=True)
-    password = models.CharField(max_length=30)
+    password = models.CharField(max_length=255)
     full_name = models.CharField(max_length=30)
-    profile_image = models.ImageField(upload_to='assets/', blank=True)
+    profile_image = models.TextField(blank=True)
     phone_number = models.PositiveIntegerField(blank=False)
     is_verified = models.BooleanField(default=False)
     created_date = models.DateTimeField(blank=True)
@@ -90,6 +91,7 @@ class Notifications(models.Model): ## OK
     #id = models.CharField(primary_key=True, default=generate_pk("NT"), editable=False, max_length=12, unique=True)
     camera = models.ForeignKey(Cameras, on_delete=models.CASCADE)
     status = models.CharField(max_length=30)
+    fall_image = models.ImageField(blank=True)
     created_date = models.DateTimeField(blank=False, default=datetime.now)
     created_by = models.CharField(max_length=15, blank=True) 
     updated_date = models.DateTimeField(blank=False, default=datetime.now)
@@ -149,6 +151,14 @@ class MessageRecipients(models.Model): ## OK
 
     class Meta:
         db_table = "message_recipients"
+
+class UserVerificationLogs(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    verification_code = models.CharField(max_length=255)
+    expired_time = models.DateTimeField(blank=True)
+
+    class Meta:
+        db_table = "user_verification_logs"
 
 class UserForAdminPage(models.Model):
     full_name = models.CharField(max_length=30)

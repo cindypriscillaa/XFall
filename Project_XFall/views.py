@@ -1,204 +1,78 @@
 import json
-import random
 import datetime
-from subprocess import HIGH_PRIORITY_CLASS
+import base64
 from django.db import IntegrityError
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Cameras, CamerasUsersRelation, EmergencyServices, Notifications, Roles, Users
-from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from firebase_admin import messaging
-from firebase_admin.messaging import Message, Notification
+from firebase_admin.messaging import Message
+from django.core.files.base import ContentFile 
 
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/LAPTOP/XFall/xfall-secretkey.json"
 
-class EmergencyServiceViews(APIView):
-    # def get(self, request):
-    #     #serializer = TokenVerifySerializer
-    #     #if not serializer.is_valid:
-    #     #    return Response({"Status": "Error", "Data": "User not allowed to access this service."}, status=status.HTTP_400_BAD_REQUEST)
-            
-    #     services = EmergencyServices.objects.all()
-    #     count = EmergencyServices.objects.all().count()
-    #     result = serializers.serialize('json', services, fields=('name', 'address', 'phone_number'))
-    #     #user = authenticate(request, username=request.data.get('username'), password=request.data.get('password'))
-        
-    #     if count != 0:
-    #       return HttpResponse(result, content_type='application/json', status=status.HTTP_200_OK)
-    #         #return Response({"Status": "Success", "Data": result}, status=status.HTTP_400_BAD_REQUEST)
-    #     return Response({"Status": "Error", "Data": "No emergency services found."}, status=status.HTTP_400_BAD_REQUEST)
-
-    def put (self,request):
-        body_json = request.body.decode('utf-8')
-        body = json.loads(body_json)
-
-        try: ## hanya admin yang dapat melakukan update emergency services pada user_id
-            account = Users.objects.get(id=body['user_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-          
-        if (account.role_id != 1):
-            return Response({"Status": "Error", "Data": "You're not allowed to access this service."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relation = CamerasUsersRelation.objects.get(user_id=body['user_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-            
-        try: ## yang terupdate pasti hanya 1 camera_id
-            camera = Cameras.objects.get(id=relation.camera_id)
-            camera.emergency_services_id = body['emergency_services_id']
-            camera.save()
-        except IntegrityError or ObjectDoesNotExist:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({"Status": "Success, data updated.", "Data": body}, status=status.HTTP_200_OK)
-
-class EmergencyContactViews(APIView):
-    # def get(self, request):
-    #     body_json = request.body.decode('utf-8')
-    #     body = json.loads(body_json)
-    #     try:
-    #         #relation = CamerasUsersRelation.objects.get(camera_id=body['camera_id'])
-    #         CamerasUsersRelation.objects.all().filter(camera_id=body['camera_id'])
-    #     except ObjectDoesNotExist as e:
-    #         return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     try: ## butuh test kalau listnya banyak
-    #         contacts = Users.objects.all().filter(role_id=2, is_verified=1)
-    #     except ObjectDoesNotExist as e:
-    #         return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     count = contacts.count()
-    #     #result = serializers.serialize('json', contacts, fields=('username', 'profile_image', 'phone_number'))      
-    #     result = json.dumps( {"Emergency Contacts": [{'username': o.username,
-    #                 'profile_image': str(o.profile_image),
-    #                 'phone_number': o.phone_number } for o in contacts]} )
-
-    #     if count != 0:
-    #       return HttpResponse(result, content_type='application/json', status=status.HTTP_200_OK) 
-
-    #     return Response({"Status": "Error", "Data": "No emergency contacts found."}, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request):
-        body_json = request.body.decode('utf-8')
-        body = json.loads(body_json)
-
-        try: ## hanya admin yang dapat melakukan delete emergency contacts
-            account = Users.objects.get(id=body['admin_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-          
-        if (account.role_id != 1):
-            return Response({"Status": "Error", "Data": "You're not allowed to access this service."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relation = CamerasUsersRelation.objects.get(user_id=body['admin_id'], camera_id=body['camera_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "You're not allowed to delete this data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relation = CamerasUsersRelation.objects.get(user_id=body['user_id'], camera_id=body['camera_id'])
-            relation.delete()
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-            
-        return Response({"Status": "Success, data deleted.", "Data": body}, status=status.HTTP_200_OK)
-
-class CameraViews(APIView):
-    # def get(self, request):
-    #     body_json = request.body.decode('utf-8')
-    #     body = json.loads(body_json)
-    #     count = 0
-    #     listCam = []
-
-    #     try:
-    #         list = CamerasUsersRelation.objects.all().filter(user_id=body['user_id'])
-    #         datas = CamerasUsersRelation.objects.all().filter(user_id=body['user_id']).count()
-    #     except ObjectDoesNotExist as e:
-    #         return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     try: 
-    #         while (count != datas):
-    #             cam = list[count].camera
-    #             listCam.append(Cameras.objects.get(id=cam.id))
-    #             count = count+1
-            
-    #     except ObjectDoesNotExist as e:
-    #         return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     result = json.dumps( {"Cameras": [{'camera_id': c.id,
-    #                 'status': str(c.status)} for c in listCam]} )
-        
-    #     if count != 0:
-    #       return HttpResponse(result, content_type='application/json', status=status.HTTP_200_OK) 
-
-    #     return Response({"Status": "Error", "Data": "No cameras found."}, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request): ## Service Admin
-        body_json = request.body.decode('utf-8')
-        body = json.loads(body_json)
-
-        try: ## hanya admin yang dapat melakukan delete emergency contacts
-            account = Users.objects.get(id=body['admin_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-          
-        if (account.role_id != 1):
-            return Response({"Status": "Error", "Data": "You're not allowed to access this service."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relation = CamerasUsersRelation.objects.get(user_id=body['admin_id'], camera_id=body['camera_id'])
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "You're not allowed to delete this data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relation = CamerasUsersRelation.objects.get(user_id=body['user_id'], camera_id=body['camera_id'])
-            relation.delete()
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-            
-        return Response({"Status": "Success, data deleted.", "Data": body}, status=status.HTTP_200_OK)
-
-class TriggerViews(APIView):
+class NotifyFallViews(APIView):
     def post(self, request):
-        # body = {
-        #     "cameraId": "01",
-        #     "prob": "0.6",
-        #     # "img": jstr
-        #     # "img": self.im2json(image)
-        # }
-        
-        # return HttpResponse(request.body, content_type='application/json', status=status.HTTP_200_OK) 
-
         body_json = request.body.decode('utf-8')
         body = json.loads(body_json)
         count = 0
         list = []
 
         if float(body['prob']) < 0.5:
-            return Response({"Status": "Success, data collected", "Data": body}, status=status.HTTP_200_OK)
+            return Response({"Status": "Success", "Messages": {"English": "No fall detected.", "Indonesia": "Tidak ada jatuh yang terdeteksi."}, "Data": body}, status=status.HTTP_200_OK)
 
         now = datetime.datetime.now()
+        adm = Roles.objects.get(name="Admin")
 
+        ## Get Camera Detail
         try: 
-            cam = Cameras.objects.get(id=body['cameraId'])
+            cam = Cameras.objects.get(id=body['camera_id'])
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        ## Check Relation and Admin ID
+        try:
+            list = CamerasUsersRelation.objects.all().filter(camera_id=body['camera_id'])
+            datas = CamerasUsersRelation.objects.all().filter(camera_id=body['camera_id']).count()
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
         
-        notif = Notifications(camera = cam, status = "ON", created_date = now,
-            updated_date = now, created_by = "superadmin", updated_by = "superadmin")
-        notif.save()
+        try: 
+            while (count != datas):
+                user = Users.objects.get(id=list[count].user_id)
+                if user.role_id == adm.id:
+                    adminID = user.id
+                count = count+1
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+        
+        ## Get Admin Detail
+        try: 
+            admin = Users.objects.get(id=adminID, is_verified=1)
+        except ObjectDoesNotExist as e:
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+        
+        ## Save Notification and Screen Capture Image
+        imgName = '{}{}{}'.format(admin.username, "_", now.strftime('%y%m%d%H%M%S'))
+        format, imgstr = body['img'].split(';base64,') 
+        ext = format.split('/')[-1] 
+        try:
+            data = ContentFile(base64.b64decode(imgstr), name=imgName + "." + ext)
+            notif = Notifications(status="ON", created_date = now, updated_date = now, 
+                created_by = "superadmin", updated_by = "superadmin", camera_id=cam.id, fall_image=data)  
+            notif.save()
+        except:
+            return Response({"Status": "Error", "Messages": {"English": "Failed to save notification.", "Indonesia": "Gagal dalam menyimpan notifikasi."}}, status=status.HTTP_400_BAD_REQUEST)
 
         ## Check data fall 20 menit sebelumnya
         try:
             list = Notifications.objects.all().filter(camera=body['cameraId'])
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
         try: 
             stats = list.latest('created_date').status
@@ -206,69 +80,73 @@ class TriggerViews(APIView):
             
             lastDate = date.replace(tzinfo=None)
             diff = now - lastDate 
-            #return Response({"Status": "Success, data collected", "Data": str(now) + ", "+ str(lastDate) + ", " + str(diff)}, status=status.HTTP_200_OK)
+            
             if stats == "ON" and (int(round(diff.total_seconds()/60, 0))) < 20:
-                return Response({"Status": "Success, data collected", "Data": body}, status=status.HTTP_200_OK)
+                return Response({"Status": "Success", "Messages": {"English": "Fall detected (same event as previous notification).", "Indonesia": "Terdeteksi jatuh (kejadian yang sama dengan notifikasi yang lalu)."}, "Data": body}, status=status.HTTP_200_OK)
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
-        adm = Roles.objects.get(name="Admin")
         user = Roles.objects.get(name="User")
 
         ## Get All Emergency Contacts
         try:
-            CamerasUsersRelation.objects.all().filter(camera_id=body['cameraId'])
+            CamerasUsersRelation.objects.all().filter(camera_id=body['camera_id'])
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
         try: 
             contacts = Users.objects.all().filter(role_id=user.id, is_verified=1)
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
         count = contacts.count()
-
-        ## Get Admin Detail
-        try: 
-            admin = Users.objects.get(role_id=adm.id, is_verified=1)
-        except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
 
         ## Get Emergency Services Detail
         try: 
             services = EmergencyServices.objects.get(id=cam.emergency_services_id)
         except ObjectDoesNotExist as e:
-            return Response({"Status": "Error", "Data": "No data found."}, status=status.HTTP_400_BAD_REQUEST)
-
-        ## Save Screen Capture Image
-        imgName = '{}{}'.format(datetime.now().strftime('%y%m%d'), random.randint(10, 99))
-        try:
-            with open(str(admin.id) + imgName + ".jpg", "wb") as fh:
-                fh.write(body['img'].decode('base64'))
-        except:
-            return Response({"Status": "Error", "Data": "Failed to upload image."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Status": "Error", "Messages": {"English": "No data found.", "Indonesia": "Data tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
 
         message = messaging.Message(
             data={
-                "notificationTitle": "Jatuh - Rumah " + str(cam.name),
-                "notificationBody": "Ada kejadian jatuh di rumah",
-                "cameraId": body['cameraId'],
-                "cameraName": cam.name,
-                "cameraImage": body['img'],
-                "homeNumber": admin.phone_number,
-                "serviceNumber": services.phone_number
+                "push_notif_type": "FALL",
+                "notification_id": str(notif.id),
+                "notification_title": "Jatuh - Rumah " + str(cam.name),
+                "notification_body": "Ada kejadian jatuh di rumah",
+                "camera_id": body['camera_id'],
+                "camera_name": cam.name,
+                "camera_image": str(notif.fall_image),
+                "home_number": str(admin.phone_number),
+                "service_number": str(services.phone_number)
             },
-            topic="testing-topic",
-            android=messaging.AndroidConfig(priority="High"),
+            topic="testing",
+            android=messaging.AndroidConfig(priority="high"),
         )
         
-        resp = messaging.send(message)
+        messaging.send(message)
 
-        result = json.dumps( {"Successfully sent message to:": [{'username': o.username,
+        result = json.dumps( {"Messages" : {"English": "Successfully send notification to emergency contacts.", "Indonesia": "Berhasil mengirim notifikasi kepada kontak darurat."}, 
+                    "Emergency_Contacts": [{'username': o.username,
                     'profile_image': str(o.profile_image),
-                    'phone_number': o.phone_number } for o in contacts]} )
-                    #"Result": str(resp)} )
+                    'phone_number': o.phone_number } for o in contacts]}) ## TO-DO: LOGGING
 
         if count != 0:
           return HttpResponse(result, content_type='application/json', status=status.HTTP_200_OK) 
 
-        return Response({"Status": "Error", "Data": "No emergency contacts found."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"Status": "Error", "Messages": {"English": "No emergency contacts found.", "Indonesia": "Data kontak darurat tidak ditemukan."}}, status=status.HTTP_400_BAD_REQUEST)
+
+class TestSaveImage(APIView):
+    def get(self, request):
+        image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIBAMAAABfdrOtAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAD1BMVEVHcEwAAAAAAAAAAAAAAADTrAj/AAAABXRSTlMA/7x4OWjJfMIAAANTSURBVHja7VrbcaswEE1ADYAoAAEFAKYAwPRf0/WNxzbEIO0LTSbZ82kDZx9nhbTLx4dCoVAoFAqFQqFQSGO5XvrqMiwnUlz77I68Hk6iMA+KL9TjKW64bIN8OJ/jDJZrtgNhltTtkeStaM53OW4sktnvsgNYOY45O0RzdrBEA+ZxRMwVszW9qraOybgyrRjqZbxh6Vc8hbAj1XP1XSpZV+bdNXG1WjaS0qq3f/SCAksP6+5ZoaVYsb/b+/TRiqV9J/KJVOoTn7WdULwez2l9+bIy2rLeOmXqK/U5Evwbt6TYQDQLiZSUAV1YiZSMIYWP/JTYoKstv0pKzhXQvLdBXwt23nPfJY6decATAHaAVscG8E4bueIqAde0XJIR4G3JVHBg+XNMkgmSVMfU8ASRZydCUghYwjVShqSBbP5yJkkJkaBlriogklxJfhCJjLqKc9XV/ZqKj7hAnrzUJ3AS7pvx5NcvZJPA3khAtkQJe8cN2NxN3M0dfJvKIQlvuA3/FBTl6BDlEBQ8rUkc56AHU07eIx2xE1izgNdcgbU9uG0ibwPHCDW8orSink219jgj/H5qjPbgqwdYH9ELNDpfLdtm92wtMxN4ddHrXQ6RPnq6N/ZbjwMFHPk+EPj/y3Jx0sOgdDPJqG44YbSxduW8qVaUcVOUwVmcEeCxK4KOXI/DNUTgEPMlzbwQ8SV1fhKJUbYJcIiUSp8FYcXF+7Z28ZO/DVZeD/ex7LV3ggHrNhSrZ5kNjZVSr/1m7rLOFkdhzvcxzPrtyNhxJ4HczgK5X2W9CWmPnPskbOfMdeXliAXUas50xBeKlyUlr0ZakMotq0Ya4MJDqZUJqJtnwApG2gdo7ggqTuChph+4EHeSZ/+BY+++QSMxWqX4xe/aAibTkeL1iBZwRZpJ+kpxUTakepyR/pMaOR0yk5RvJdC9MkpzLUUb1uFFPKHfdgn+/YhvX+Jbt4bQUXbYSjEEQU5Y5ykdZfQ9E6F+0d6TPhPBfsBC+uAFaZkhzcImnLxoYyrkSIg2pjK4u2hjKqT/n7QdNC6TxGkubj7b0UhwthFHxjgS4jQX9x1DDBJDPG6kGOX/aBJDIBmJJK2820piqi/gz7L3+zhdKYVCoVAoFAqFQvGX8Q8dFNioansTYQAAAABJRU5ErkJggg=='
+        imgName = '{}{}'.format("_", datetime.datetime.now().strftime('%y%m%d%H%M%S'))
+        format, imgstr = image.split(';base64,') 
+        ext = format.split('/')[-1] 
+        try:
+            data = ContentFile(base64.b64decode(imgstr), name=imgName + "." + ext)
+            cam = Cameras.objects.get(id=2)
+            notif = Notifications(status="ON", created_date = datetime.datetime.now(),
+                updated_date = datetime.datetime.now(), created_by = "superadmin", updated_by = "superadmin", camera_id=cam.id, fall_image=data)  
+            notif.save()
+        except:
+            return Response({"Status": "Error", "Messages": "Failed to upload image."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"Status": "Success", "Messages": notif}, status=status.HTTP_200_OK)

@@ -51,18 +51,57 @@
                 <div style="padding-top: 50%;"> 
                     <button type="button" name="Logout Button" style="width: 200px; height: 100px; text-align: left; font-weight: bold; 
                     border: none; background-color: transparent;">
-                        <a href="http://localhost:8000/login/admin" style="text-decoration: none;">Logout</a>
+                        <a href="http://localhost:8000/logout/admin" style="text-decoration: none;">Logout</a>
                     </button>
                 </div>
             </div>
-            <div style="width: 80%; display: table-cell;"> 
+            <!-- <div style="width: 80%; display: table-cell;"> 
                 <div style="width: inherit; height: 350pt; background-color: lightgrey; margin-right: 5%; margin-left: 10%;">
                     Camera
                 </div>
-                <button type="button" name="Camera Button" style="width: 140px; height: 40px; text-align: center; border-radius: 5px; 
-                    font-size: medium; margin-left: 10%; margin-top: 2%;">
-                    Close Camera
-                </button>
+                <div id="qrcode" style="width: inherit; margin-right: 5%; margin-left: 10%; margin-top: 1%;">
+                    <button type="button" name="Camera Button" style="width: 140px; height: 40px; text-align: center; border-radius: 5px; 
+                        font-size: medium;">
+                        Close Camera
+                    </button>
+
+                    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+                    <script type="text/javascript">
+                        function generateBarCode()
+                        {
+                            var nric = $('#text').val();
+                            var url = 'https://api.qrserver.com/v1/create-qr-code/?data=' + nric + '&amp;size=100x100';
+                            $('#barcode').attr('src', url);
+                        }
+                        
+                    </script>
+                    
+                    <img id='barcode' 
+                    src="https://api.qrserver.com/v1/create-qr-code/?data={{user}}&amp;size=100x100" 
+                    alt="" 
+                    width="100" 
+                    height="100" style="margin-left: 73.5%;"/>
+                </div> 
+            </div> -->
+            <div style="width: 80%; display: table-cell;"> 
+                <h3 style="text-align: center; margin-right: 29.5%;">Scan this QR Code to get connected</h3>
+                <div style="text-align: center; margin-right: 29%;">
+                    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+                    <script type="text/javascript">
+                        function generateBarCode()
+                        {
+                            var nric = $('#text').val();
+                            var url = 'https://api.qrserver.com/v1/create-qr-code/?data=' + nric + '&amp;size=150x150';
+                            $('#barcode').attr('src', url);
+                        }
+                    </script>
+                    {{id}}
+                    <img id='barcode' 
+                    src="https://api.qrserver.com/v1/create-qr-code/?data={{user}}&amp;size=100x100" 
+                    alt="" 
+                    width="200" 
+                    height="200"/>
+                </div>
             </div>
         </div>
     </div>
