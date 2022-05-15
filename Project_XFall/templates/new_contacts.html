@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading">
+    <h3>Emergency Contacts</h3>
+    <h5 style="color: #6c757d">Camera ID: {{camera_id}}</h5>
+</div>
+<div class="page-content">
+    <section class="row">
+        <table style="text-align: center;">
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Phone Number</th>
+                <th>Action</th>
+            </tr>
+            {% for column in data %}
+            <tr style="border-color: --br-primary; border-width: 1px;">
+                <td><img src="{{column.img}}" alt="" width="50" height="50"/> </td> 
+                <td>{{column.name}}</td>
+                <td>{{column.phone_number}}</td>
+                {% if column.id != "-" %}
+                <td>
+                    <button type="button" name="Delete" style="width: 136px; height: 30px; text-align: center; border-color: #6c757d;
+                    background-color: transparent; font-size: 14px; margin-top: 5px; margin-bottom: 5px; border-radius: 7.5px;">
+                        <a href="http://localhost:8000/contacts/admin/{{column.id}}" style="text-decoration: none;">DELETE</a>
+                    </button>
+                </td>
+                {% else %}
+                <td>-</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+{% endblock content %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading">
+    <h3>Dashboard</h3>
+</div>
+<div class="page-content">
+    <section class="row">
+        <div class="col-12 col-lg-9">
+            <div class="row">
+                <div class="col-6 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body px-3 py-4">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="stats-icon purple">
+                                        <i class="iconly-boldShow"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h6 class="text-muted">Scan to Connect</h6>
+                                    <h6 class="text-muted font-semibold">QR Code</h6>
+                                    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+                                    <script type="text/javascript">
+                                        function generateBarCode()
+                                        {
+                                            var nric = $('#text').val();
+                                            var url = 'https://api.qrserver.com/v1/create-qr-code/?data=' + nric + '&amp;size=150x150';
+                                            $('#barcode').attr('src', url);
+                                        }
+                                    </script>
+                                    
+                                    <img id='barcode' 
+                                    src="https://api.qrserver.com/v1/create-qr-code/?data={{camera_id}}&amp;size=150x150" 
+                                    alt="" 
+                                    width="200" 
+                                    height="200"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-5 col-md-6">
+                    <div class="card">
+                        <div class="card-body px-4 py-4">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="stats-icon blue">
+                                        <i class="iconly-boldProfile"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h6 class="text-muted font-semibold">Connected Users</h6>
+                                    <h6 class="font-extrabold mb-0">{{connected_user}}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock content %}
