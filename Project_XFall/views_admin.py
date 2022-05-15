@@ -21,11 +21,12 @@ from firebase_admin.messaging import Message
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/LAPTOP/XFall/xfall-secretkey.json"
 
+CURRENT_URL = "http://localhost:8000"
 
-class AdminLoginViews(TokenObtainPairView):
+class AdminLoginViews(TokenObtainPairView): ## NOT USED
     serializer_class = AdminTokenObtainPairSerializer
 
-class AdminRegisViews(APIView):
+class AdminRegisViews(APIView): ## NOT USED
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = 'register.html'
 
@@ -122,7 +123,7 @@ def RegisPageViews(request):
       if str(serializer.errors).find("already exists"):
         return render(request, 'alert.html', {'message':'User already exists', 'path':'/register/admin'}) #{'message':'English: User already exists. Indonesia: Pengguna sudah terdaftar.'})
    
-  context = {'form': form}
+  context = {'form': form, 'url': CURRENT_URL}
   return render(request, 'register.html', context)
 
 def LoginPageViews(request):
@@ -173,7 +174,7 @@ def LoginPageViews(request):
     request.session['token'] = str(loginSession.token)
     return redirect("Dashboard")
    
-  context = {'form': form}
+  context = {'form': form, 'url': CURRENT_URL}
   return render(request, 'login.html', context)
 
 def DashboardViews(request):
@@ -195,7 +196,7 @@ def DashboardViews(request):
   except ObjectDoesNotExist as e:
       return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
 
-  context = {'camera_id': str(relation.camera_id), 'connected_user': str(CamerasUsersRelation.objects.all().filter(camera_id=relation.camera_id).count() - 1)}
+  context = {'camera_id': str(relation.camera_id), 'connected_user': str(CamerasUsersRelation.objects.all().filter(camera_id=relation.camera_id).count() - 1), 'url': CURRENT_URL}
   return render(request, 'home.html', context)
 
 def ContactViews(request):
@@ -245,7 +246,7 @@ def ContactViews(request):
         contactDetail = {"id": "-", "name": "-", "phone_number": "-"}
         listContacts.append(contactDetail)
   
-  context = {'data': listContacts, 'camera_id': relation.camera_id}
+  context = {'data': listContacts, 'camera_id': relation.camera_id, 'url': CURRENT_URL}
   return render(request, 'new_contacts.html', context)
 
 def ServiceViews(request):
@@ -300,7 +301,7 @@ def ServiceViews(request):
         listServices.append(contactDetail)
 
   listServices.sort(key=lambda x: (x['is_selected']), reverse=True)
-  context = {'data': listServices, 'camera_id': relation.camera_id}
+  context = {'data': listServices, 'camera_id': relation.camera_id, 'url': CURRENT_URL}
   return render(request, 'new_services.html', context)
 
 def EditServiceViews(request, id):
@@ -414,6 +415,12 @@ def AddServiceViews(request):
   else:
     return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
+  ## Check Relation
+  try:
+      relation = CamerasUsersRelation.objects.get(user_id=login.user_id)
+  except ObjectDoesNotExist as e:
+      return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
+
   if request.method == 'POST':
     form = ServiceForm(request.POST)
 
@@ -440,7 +447,7 @@ def AddServiceViews(request):
     else:
       return render(request, 'alert.html', {'message':"Failed to add new service", 'path':'/services/admin'})
    
-  context = {'form': form}
+  context = {'form': form, 'camera_id': relation.camera_id, 'url': CURRENT_URL}
   return render(request, 'new_add_service.html', context)
 
 def LogoutPageViews(request):

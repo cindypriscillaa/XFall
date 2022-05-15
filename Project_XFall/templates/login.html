@@ -1,63 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login</title>
-    <style>
-        body {
-            padding-left: 40%;
-            padding-right: 40%;
-            color: #435ebe;
-        }
-        h2 {
-            text-align: justify;
-            font-family: "Segoe UI";
-        }
-        form {
-            width: 100%;
-        }
-        input {
-            padding-top: 10pt;
-            padding-bottom: 10pt;
-            width: inherit;
-            border-radius: 5px;
-        }
-        div {
-            width: 85%;
-            padding-left: 15%;
-            padding-right: 15%;
-        }
-    </style>
-</head>
-<div style="padding-top: 1%; padding-left: 270%; width: inherit;"> 
-    <button type="button" name="Register Button" style="width: 100px; height: 40px; text-align: center; border-radius: 5px; 
-    font-weight: bold; border-radius: 7.5px; border-width: thin; font-weight: bold;">
-        <a href="http://localhost:8000/register/admin" style="text-decoration: none; color: #435ebe;">Register</a>
-    </button>
-</div>
-<body>
-    <h2 style="padding-top: 40%;">Login</h2>
+{% extends "base.html" %}
+{% block content %}
+<div class="page-content">
+<body style="margin-left: 30%; margin-right:30%; margin-top: 5%;">
+    <h2>Login</h2>
+    <br>
     <form method="POST" action="">
         {% csrf_token %}
 
-        {{form.free}} <br><br>
-        {{form.password}} <br>
-        <br><br>
-        <div> 
-            <input type="submit" name="Login User" style="border-width: thin; font-weight: bold; cursor: pointer; border-radius: 7.5px; color: #435ebe;">
+        {{form.free}} <br>
+        {{form.password}}
+        
+        <div style="text-align: center;">
+            <div> 
+                <!-- <input type="submit" name="Login User" style="border-width: thin; font-weight: bold; cursor: pointer; border-radius: 7.5px; color: #435ebe;"> -->
+                <button class="btn btn-primary" type="submit" name="Login User" style="margin-top: 7%; width: 200px;">Submit</button>
+            </div><br>
+            <p><small>--------- OR ---------</small></p>
+            <div> 
+                <a href="{{url}}/register/admin" class="btn btn-outline-secondary" style="width: 200px">Register</a>
+            </div>
         </div>
     </form>
     <script>
         var form_fields = document.getElementsByTagName('input')
         form_fields[1].placeholder = "email or username"
         form_fields[2].placeholder = "password"
-        form_fields[1].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
-        form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
+        // form_fields[1].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
+        // form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
+        form_fields[1].className = "form-control"
+        form_fields[2].className = "form-control"
         form_fields[2].type = "password"
 
         localStorage.set("email_or_username", form_fields[1])
     </script>
-</body>
 </html>
+{% endblock content %}

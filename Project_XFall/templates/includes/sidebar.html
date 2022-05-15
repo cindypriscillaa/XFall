@@ -1,6 +1,6 @@
 {% load static %}
 {% block content %}
-<div id="sidebar" class="active">
+<div id="sidebar" class="{% if request.resolver_match.url_name != 'Login' and request.resolver_match.url_name != 'Registration'%} active {% endif %}">
     <div class="sidebar-wrapper active">
         <div class="sidebar-header">
             <div class="d-flex justify-content-between">

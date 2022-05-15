@@ -1,1 +1,1 @@
-web: gunicorn XFall.wsgi
+web: gunicorn XFall.wsgi --log-file -

@@ -13,27 +13,35 @@
 </div>
 <div class="page-content">
     <section class="row">
-        <form method="POST" action="" style="font-size: 16px;">
+        <form method="POST" class="form-control" action="" style="font-size: 16px;">
             {% csrf_token %}
-            
+            <br>
             Service Type: {{form.type}} <br><br>
             Name:<br>
             {{form.name}} <br><br>
             Address:<br>
             {{form.address}} <br><br>
             Phone Number:<br>
-            {{form.phone_number}} <br>
+            {{form.phone_number}}
+            <!-- <p>
+                <small class="text-muted">Please use prefix 64</small>
+            </p> -->
     
             <div> 
-                <input class="button" type="submit" name="Create User" style="border-color: #6c757d; border-width: 1px; border-radius: 7.5px;
-                margin-top: 7%; width: 120px;">
+                <button class="btn btn-primary" type="submit" name="Create User" style="margin-top: 7%">Submit</button>
+                <!-- style="border-color: #6c757d; border-width: 1px; border-radius: 7.5px;
+                margin-top: 7%; width: 120px;" -->
             </div>
+            <br>
         </form>
         <script>
             var form_fields = document.getElementsByTagName('input')
-            form_fields[1].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: 300px"
-            form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: inherit; height: 100px;"
-            form_fields[3].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: 200px"
-            form_fields[3].type = "number"
+            form_fields[1].className = "form-control"
+            form_fields[2].className = "form-control"
+            form_fields[2].type = "number"
+            // form_fields[1].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: 300px"
+            // // form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: inherit; height: 100px;"
+            // form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px; width: 200px"
+            // form_fields[2].type = "number"
         </script>
 {% endblock content %}

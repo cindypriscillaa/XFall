@@ -20,10 +20,7 @@
                 <td>{{column.phone_number}}</td>
                 {% if column.id != "-" %}
                 <td>
-                    <button type="button" name="Delete" style="width: 136px; height: 30px; text-align: center; border-color: #6c757d;
-                    background-color: transparent; font-size: 14px; margin-top: 5px; margin-bottom: 5px; border-radius: 7.5px;">
-                        <a href="http://localhost:8000/contacts/admin/{{column.id}}" style="text-decoration: none;">DELETE</a>
-                    </button>
+                    <a href="{{url}}/contacts/admin/{{column.id}}" class="btn btn-outline-secondary btn-sm">DELETE</a>
                 </td>
                 {% else %}
                 <td>-</td>

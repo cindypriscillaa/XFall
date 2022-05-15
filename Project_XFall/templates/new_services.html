@@ -7,10 +7,7 @@
 <div class="page-content">
     <section class="row">
         <div style="height: 65px;">
-            <button class="stats-icon blue" type="button" name="Add Service" style="width: 136px; height: 30px; text-align: center;
-            background-color: transparent; font-size: 14px; margin-top: 10px; margin-right: 5.5%; border-color: #6c757d;">
-                <a href="http://localhost:8000/new-service/admin" style="text-decoration: none;">Add Service</a>
-            </button>
+            <a href="{{url}}/new-service/admin" class="btn btn-primary btn-md">+ New Service</a>
         </div>
         <table style="text-align: center;">
             <tr>
@@ -21,7 +18,7 @@
               <th>Action</th>
             </tr>
             {% for column in data %}
-            <tr style="border-color: --br-primary; border-width: 1px;">
+            <tr style="border-color: --br-primary; border-width: 1px; height: 60px;">
                 <td>{{column.name}}</td>
                 <td>{{column.address}}</td>
                 <td>{{column.phone_number}}</td>
@@ -29,19 +26,10 @@
                 {% if column.name != "-" %}
                 <td>
                     {% if column.is_selected == True %}
-                    <button type="button" name="Selected" style="width: 136px; height: 30px; text-align: center; border-color: #6c757d;
-                    background-color: lightgray; font-size: 14px; margin-top: 5px; margin-bottom: 5px; border-radius: 7.5px; cursor: default;">
-                        SELECTED
-                    </button>
+                    <a href="#" class="btn disabled btn-primary btn-sm" style="width: 120px;">SELECTED</a>
                     {% else %}
-                    <button type="button" name="Select" style="width: 67px; height: 30px; text-align: center; border-color: #6c757d;
-                    background-color: transparent; font-size: 14px; margin-top: 5px; margin-bottom: 5px; border-radius: 7.5px;">
-                        <a href="http://localhost:8000/services/admin/{{column.id}}?action=1" style="text-decoration: none;">Select</a>
-                    </button>
-                    <button type="button" name="Delete" style="width: 67px; height: 30px; text-align: center; border-color: #6c757d;
-                    background-color: transparent; font-size: 14px; margin-top: 5px; margin-bottom: 5px; border-radius: 7.5px;">
-                        <a href="http://localhost:8000/services/admin/{{column.id}}?action=2" style="text-decoration: none;">Delete</a>
-                    </button>
+                    <a href="{{url}}/services/admin/{{column.id}}?action=1" class="btn btn-outline-secondary btn-sm">Select</a>
+                    <a href="{{url}}/services/admin/{{column.id}}?action=2" class="btn btn-outline-secondary btn-sm">Delete</a>
                     {% endif %}
                 </td>
                 {% else %}
