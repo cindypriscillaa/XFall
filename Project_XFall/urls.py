@@ -17,7 +17,7 @@ urlpatterns=[
   path('contacts/admin', views_admin.ContactViews, name="Contacts"),
   path('services/admin', views_admin.ServiceViews, name="Services"),
   path('services/admin/<int:id>', views_admin.EditServiceViews, name="Set Services"),
-  path('services/new/admin', views_admin.AddServiceViews, name="Add Service"),
+  path('new-service/admin', views_admin.AddServiceViews, name="Add Service"),
   path('contacts/admin/<int:id>', views_admin.DeleteContactViews, name="Delete Contact"),
 
   ## Send Notification Related

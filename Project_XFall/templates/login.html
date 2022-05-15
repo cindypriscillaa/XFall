@@ -7,19 +7,14 @@
     <title>Login</title>
     <style>
         body {
-            padding-top: 10%;
             padding-left: 40%;
             padding-right: 40%;
+            color: #435ebe;
         }
         h2 {
             text-align: justify;
-            font-family: sans-serif;
+            font-family: "Segoe UI";
         }
-        /* input, button {
-            padding-top: 10pt;
-            padding-bottom: 10pt;
-            width: 100%;
-        } */
         form {
             width: 100%;
         }
@@ -36,8 +31,14 @@
         }
     </style>
 </head>
+<div style="padding-top: 1%; padding-left: 270%; width: inherit;"> 
+    <button type="button" name="Register Button" style="width: 100px; height: 40px; text-align: center; border-radius: 5px; 
+    font-weight: bold; border-radius: 7.5px; border-width: thin; font-weight: bold;">
+        <a href="http://localhost:8000/register/admin" style="text-decoration: none; color: #435ebe;">Register</a>
+    </button>
+</div>
 <body>
-    <h2>Login</h2>
+    <h2 style="padding-top: 40%;">Login</h2>
     <form method="POST" action="">
         {% csrf_token %}
 
@@ -45,13 +46,15 @@
         {{form.password}} <br>
         <br><br>
         <div> 
-            <input type="submit" name="Login User" style="border-width: medium;">
+            <input type="submit" name="Login User" style="border-width: thin; font-weight: bold; cursor: pointer; border-radius: 7.5px; color: #435ebe;">
         </div>
     </form>
     <script>
         var form_fields = document.getElementsByTagName('input')
         form_fields[1].placeholder = "email or username"
         form_fields[2].placeholder = "password"
+        form_fields[1].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
+        form_fields[2].style = "border-radius: 7.5px; border-color: #6c757d; border-width: 1px;"
         form_fields[2].type = "password"
 
         localStorage.set("email_or_username", form_fields[1])

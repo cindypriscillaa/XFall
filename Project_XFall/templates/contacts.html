@@ -62,12 +62,10 @@
             </div>
             <div style="width: 80%; display: table-cell;"> 
                 <div style="width: inherit; margin-right: 5%; margin-left: 10%;">
-                    <h2 style="font-weight: lighter;">Add Contact</h2>
-                    Camera ID: {{camera_id}}
-                    <br><br><br><br>
-                    
                     <h2 style="font-weight: lighter;">Contact List</h2>
-                    <div style="height: 301pt; overflow: auto;">
+                    Camera ID: {{camera_id}}
+                    <br><br><br>
+                    <div style="height: 320pt; overflow: auto;">
                         <table style="width: 100%;">
                             <tr>
                               <th>Image</th>
@@ -77,7 +75,7 @@
                             </tr>
                             {% for column in data %}
                             <tr>
-                                <td>{{column.id}}</td>
+                                <td>{{column.img}}</td>
                                 <td>{{column.name}}</td>
                                 <td>{{column.phone_number}}</td>
                                 {% if column.id != "-" %}

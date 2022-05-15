@@ -170,40 +170,50 @@ def LoginPageViews(request):
 
     # context = {'id': 'user_id', 'value': user.id, 'action': 'set'}
     # render(request, 'localStorage.html', context)
-    request.session['user_id'] = user.id
+    request.session['token'] = str(loginSession.token)
     return redirect("Dashboard")
    
   context = {'form': form}
   return render(request, 'login.html', context)
 
 def DashboardViews(request):
-  # try: ## Check Login Session
-  #     login = Login.objects.get(token='ab27180e6e2146c1b9d1aac5003c5412')
-  # except ObjectDoesNotExist as e:
-  #     return render(request, 'alert.html', {'message':"No data found", 'path':'/contacts/admin'})
+  if request.session.has_key('token'):
+    try: ## Check Login Session
+        login = Login.objects.get(token=request.session['token'])
+    except ObjectDoesNotExist as e:
+        return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
-  # ## Check Token
-  # if login.login_status != "ON" and login.is_logged_out != 0:
-  #     return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
-  user_id = request.session['user_id']
-  context = {'id': 'user_id'}
-  #render(request, 'localStorage.html', context)
-  #return render(request, 'alert.html', {'message':context, 'path':'/contacts/admin'})
-  return render(request, 'dashboard.html', context)
+    ## Check Token
+    if login.login_status != "ON" and login.is_logged_out != 0:
+        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+  else:
+    return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
+  
+  ## Get Relation
+  try:
+      relation = CamerasUsersRelation.objects.get(user_id=login.user_id)
+  except ObjectDoesNotExist as e:
+      return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
+
+  context = {'camera_id': str(relation.camera_id), 'connected_user': str(CamerasUsersRelation.objects.all().filter(camera_id=relation.camera_id).count() - 1)}
+  return render(request, 'home.html', context)
 
 def ContactViews(request):
   if request.method == 'GET':
     count = 0
     listContacts = []
 
-    try: ## Check Login Session
-        login = Login.objects.get(token='75cc78c7868346c0a5de63a1dc479f04')
-    except ObjectDoesNotExist as e:
-        return render(request, 'alert.html', {'message':"No data found", 'path':'/contacts/admin'})
+    if request.session.has_key('token'):
+      try: ## Check Login Session
+          login = Login.objects.get(token=request.session['token'])
+      except ObjectDoesNotExist as e:
+          return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
-    ## Check Token
-    if login.login_status != "ON" and login.is_logged_out != 0:
-        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+      ## Check Token
+      if login.login_status != "ON" and login.is_logged_out != 0:
+          return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+    else:
+      return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
     try:
         relation = CamerasUsersRelation.objects.get(user_id=login.user_id)
@@ -224,8 +234,8 @@ def ContactViews(request):
         else:
           count = count+1
           continue
-
-        contactDetail = {"id": contact.id, "name": contact.full_name, "phone_number": contact.phone_number}
+                              ## contact.profile_image
+        contactDetail = {"img": contact.profile_image, "name": contact.full_name, "phone_number": contact.phone_number}
         listContacts.append(contactDetail)
         count = count+1
     except ObjectDoesNotExist as e:
@@ -236,21 +246,24 @@ def ContactViews(request):
         listContacts.append(contactDetail)
   
   context = {'data': listContacts, 'camera_id': relation.camera_id}
-  return render(request, 'contacts.html', context)
+  return render(request, 'new_contacts.html', context)
 
 def ServiceViews(request):
   if request.method == 'GET':
     count = 0
     listServices = []
 
-    try: ## Check Login Session
-        login = Login.objects.get(token='75cc78c7868346c0a5de63a1dc479f04')
-    except ObjectDoesNotExist as e:
-        return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
+    if request.session.has_key('token'):
+      try: ## Check Login Session
+          login = Login.objects.get(token=request.session['token'])
+      except ObjectDoesNotExist as e:
+          return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
-    ## Check Token
-    if login.login_status != "ON" and login.is_logged_out != 0:
-        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+      ## Check Token
+      if login.login_status != "ON" and login.is_logged_out != 0:
+          return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+    else:
+      return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
     try:
         relation = CamerasUsersRelation.objects.get(user_id=login.user_id)
@@ -276,19 +289,19 @@ def ServiceViews(request):
             if service.id == cam.emergency_services_id:
               is_selected = True
             type = ServiceTypes.objects.get(id=service.type_id)
-            serviceDetail = {"id": service.id, "name": service.name, "phone_number": service.phone_number, "type": type.name, "is_selected": is_selected}
+            serviceDetail = {"id": service.id, "name": service.name, "address": service.address, "phone_number": service.phone_number, "type": type.name, "is_selected": is_selected}
             listServices.append(serviceDetail)
             count = count+1
     except ObjectDoesNotExist as e:
         return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
 
     if listServices == []:
-        contactDetail = {"id": "-", "name": "-", "phone_number": "-", "type": "-"}
+        contactDetail = {"id": "-", "name": "-", "address": "-", "phone_number": "-", "type": "-"}
         listServices.append(contactDetail)
 
   listServices.sort(key=lambda x: (x['is_selected']), reverse=True)
   context = {'data': listServices, 'camera_id': relation.camera_id}
-  return render(request, 'services.html', context)
+  return render(request, 'new_services.html', context)
 
 def EditServiceViews(request, id):
     try:
@@ -297,18 +310,17 @@ def EditServiceViews(request, id):
     except KeyError as e:
       return render(request, 'alert.html', {'message':"Required field is empty", 'path':'/services/admin'})
 
-    ## Check Type
-    if request.GET.get('action') != "1" and request.GET.get('action') != "2":
-      return render(request, 'alert.html', {'message':"Invalid action", 'path':'/services/admin'})
+    if request.session.has_key('token'):
+      try: ## Check Login Session
+          login = Login.objects.get(token=request.session['token'])
+      except ObjectDoesNotExist as e:
+          return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
-    try: ## Check Login Session
-        login = Login.objects.get(token='75cc78c7868346c0a5de63a1dc479f04')
-    except ObjectDoesNotExist as e:
-        return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
-
-    ## Check Token
-    if login.login_status != "ON" and login.is_logged_out != 0:
-        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+      ## Check Token
+      if login.login_status != "ON" and login.is_logged_out != 0:
+          return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+    else:
+      return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
     try:
         relation = CamerasUsersRelation.objects.get(user_id=login.user_id)
@@ -324,23 +336,25 @@ def EditServiceViews(request, id):
           return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
     else:
       try: 
-          camera = Cameras.objects.get(id=relation.camera_id)
-          camera.emergency_services_id = None
-          camera.save()
+          service = EmergencyServices.objects.get(id=id)
+          service.delete()
       except IntegrityError or ObjectDoesNotExist:
           return render(request, 'alert.html', {'message':"No data found", 'path':'/services/admin'})
     
     return render(request, 'alert.html', {'message':"Emergency services updated", 'path':'/services/admin'})
 
 def DeleteContactViews(request, id):
-    try: ## Check Login Session
-        login = Login.objects.get(token='75cc78c7868346c0a5de63a1dc479f04')
-    except ObjectDoesNotExist as e:
-        return render(request, 'alert.html', {'message':"No data found", 'path':'/contacts/admin'})
+    if request.session.has_key('token'):
+      try: ## Check Login Session
+          login = Login.objects.get(token=request.session['token'])
+      except ObjectDoesNotExist as e:
+          return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
-    ## Check Token
-    if login.login_status != "ON" and login.is_logged_out != 0:
-        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+      ## Check Token
+      if login.login_status != "ON" and login.is_logged_out != 0:
+          return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+    else:
+      return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
 
     ## Get Admin Role
     try: 
@@ -387,12 +401,28 @@ def DeleteContactViews(request, id):
 
 def AddServiceViews(request):
   form = ServiceForm()
-  # - Validasi service penambahan logic unik penambahan emergency service
-  # - Validasi service hapus emergency service, cek apakah service itu masih ada yang pake atau gak 
-  # (dan ditambah alert js biasa aja untuk konfirmasi waktu mau hapus)
+
+  if request.session.has_key('token'):
+    try: ## Check Login Session
+        login = Login.objects.get(token=request.session['token'])
+    except ObjectDoesNotExist as e:
+        return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
+
+    ## Check Token
+    if login.login_status != "ON" and login.is_logged_out != 0:
+        return render(request, 'alert.html', {'message':"User already logged out", 'path':'/logout/admin'})
+  else:
+    return render(request, 'alert.html', {'message':"No session found. Please login", 'path':'/login/admin'})
+
   if request.method == 'POST':
     form = ServiceForm(request.POST)
-    
+
+    try: ## Check if Emergency Services exists
+        EmergencyServices.objects.get(address=form['address'].value(), phone_number=form['phone_number'].value())
+        return render(request, 'alert.html', {'message':"This emergency services already exists", 'path':'/new-service/admin'})
+    except ObjectDoesNotExist as e:
+        pass
+
     body = json.loads('{}')
     body['type'] = form['type'].value()
     body['name'] = form['name'].value()
@@ -411,7 +441,7 @@ def AddServiceViews(request):
       return render(request, 'alert.html', {'message':"Failed to add new service", 'path':'/services/admin'})
    
   context = {'form': form}
-  return render(request, 'add_service.html', context)
+  return render(request, 'new_add_service.html', context)
 
 def LogoutPageViews(request):
   try: ## Check last login session

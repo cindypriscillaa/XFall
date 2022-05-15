@@ -1,6 +1,13 @@
+from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
-from .models import EmergencyServices, UserForAdminPage
+from .models import EmergencyServices, ServiceTypes, UserForAdminPage
+
+SERVICES_TYPES = [
+    ('1', 'Rumah Sakit'),
+    ('2', 'Puskesmas'),
+    ('3', 'Klinik'),
+]
 
 class CreateAdminForm(UserCreationForm):
     class Meta:
@@ -13,6 +20,7 @@ class LoginAdminForm(UserCreationForm):
         fields = ['free', 'password'] 
 
 class ServiceForm(ModelForm):
+    type = forms.ChoiceField(choices=SERVICES_TYPES)
     class Meta:
         model = EmergencyServices 
         fields = ['type', 'name', 'address', 'phone_number']

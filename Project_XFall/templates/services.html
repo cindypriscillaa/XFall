@@ -62,22 +62,21 @@
             </div>
             <div style="width: 80%; display: table-cell;"> 
                 <div style="width: inherit; margin-right: 5%; margin-left: 10%;">
-                    <h2 style="font-weight: lighter;">Selected Services</h2>
-                    Camera ID: {{camera_id}}
-                    <br><br><br><br>
-                    
                     <h2 style="font-weight: lighter;">Service List</h2>
+                    Camera ID: {{camera_id}}
+                    <br><br><br>
                     <div style="height: 50px;">
                         <input type="text" placeholder="Search Service..." style="height: 25px; width: 200px;">
                         <button type="button" name="Dashboard" style="width: 100px; height: 30px; position: right; text-align: center;
                         background-color: transparent; font-size: 14px; margin-left: 67.75%;">
-                           <a href="http://localhost:8000/services/new/admin" style="text-decoration: none;">Add Service</a>
+                           <a href="http://localhost:8000/new-service/admin" style="text-decoration: none;">Add Service</a>
                         </button>
                     </div>
-                    <div style="height: 263pt; overflow: auto;">
+                    <div style="height: 300pt; overflow: auto;">
                         <table style="width: 100%;">
                             <tr>
                               <th>Name</th>
+                              <!-- <th>Address</th> -->
                               <th>Phone Number</th>
                               <th>Type</th>
                               <th style="width: 18%;">Action</th>
@@ -85,19 +84,24 @@
                             {% for column in data %}
                             <tr>
                                 <td>{{column.name}}</td>
+                                <!-- <td>{{column.address}}</td> -->
                                 <td>{{column.phone_number}}</td>
                                 <td>{{column.type}}</td>
                                 {% if column.name != "-" %}
-                                <td style="padding-right: 0%; padding-left: 2.5%;">
+                                <td style="padding-right: 1.5%; padding-left: 1.5%;">
                                     {% if column.is_selected == True %}
-                                    <button type="button" name="Selected" style="width: 134px; height: 30px; text-align: center;
+                                    <button type="button" name="Selected" style="width: 136px; height: 30px; text-align: center;
                                     background-color: lightgray; font-size: 12px; margin-top: 10px;">
-                                        <a href="http://localhost:8000/services/admin/{{column.id}}?action=2" style="text-decoration: none;">Deselect</a>
+                                        SELECTED
                                     </button>
                                     {% else %}
-                                    <button type="button" name="Select" style="width: 134px; height: 30px; text-align: center;
+                                    <button type="button" name="Select" style="width: 67px; height: 30px; text-align: center;
                                     background-color: transparent; font-size: 12px; margin-top: 10px;">
                                         <a href="http://localhost:8000/services/admin/{{column.id}}?action=1" style="text-decoration: none;">Select</a>
+                                    </button>
+                                    <button type="button" name="Select" style="width: 67px; height: 30px; text-align: center;
+                                    background-color: transparent; font-size: 12px; margin-top: 10px;">
+                                        <a href="http://localhost:8000/services/admin/{{column.id}}?action=2" style="text-decoration: none;">Delete</a>
                                     </button>
                                     {% endif %}
                                 </td>
